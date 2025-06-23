@@ -1,0 +1,10 @@
+concurrent-log-handler
+google-generativeai
+more-itertools
+nltk
+pandas
+requests
+scikit-learn
+sentence-transformers
+streamlit
+tqdm
