@@ -27,12 +27,20 @@ def film_sorusu_puanla_bulk(kullanici_sorusu, film_listesi, grup_boyutu=20):
 
 def _hazirla_prompt_puanli(kullanici_sorusu, filmler):
     prompt = f"""
-Kullanıcı şu konuda film önerisi istemektedir:
+Kullanıcının amacı: Aşağıda verilen açıklamaya gerçekten uyan filmleri bulmak.
 \"{kullanici_sorusu}\"
 
-Aşağıdaki her film için, bu istekle ne kadar alakalı olduğunu 0 (hiç ilgisiz) ile 10 (tam isabet) arasında puanla.
+Aşağıda verilen her film için 0 (tamamen alakasız) ile 10 (çok ilgili) arasında bir puan ver.
 
-Sadece sayı ver. Sıralı liste kullan: 1, 2, 3...
+Kriter:
+- Film konusu kullanıcı açıklamasına tematik olarak yakın mı?
+- Aynı tarihsel dönem, olay ya da atmosfer var mı?
+- Yüzeysel kelime eşleşmeleri yerine anlam benzerliğine odaklan.
+
+Yanıt formatı sadece sıralı puanlar olacak şekilde:
+1. <puan>
+2. <puan>
+...
 
 Filmler:
 """
@@ -40,6 +48,7 @@ Filmler:
         prompt += f"{i}. Başlık: {film['film_title']}\nTür: {film['category']}\nKonu: {film['plot']}\n\n"
     prompt += "\nYanıtlar sadece puan olacak şekilde ver:\n"
     return prompt
+
 
 def _parse_puanlar(yanit, beklenen_adet):
     satirlar = yanit.strip().splitlines()

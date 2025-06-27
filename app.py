@@ -2,17 +2,12 @@ import streamlit as st
 import pandas as pd
 from gemini_interface import film_sorusu_puanla_bulk
 from concurrent.futures import ThreadPoolExecutor
+from rag_utils import en_iyi_filmleri_getir
 import time
 
 # Sayfa ayarı
 st.set_page_config(page_title="Akıllı Film Önerici", layout="wide")
 st.title("🎬 Akıllı Film Önerici")
-
-# Veri seti
-df = pd.read_csv("film_verisi.csv")
-df = df[["film_title", "category", "plot"]].drop_duplicates(subset="film_title")
-df = df.dropna(subset=["plot"])
-df = df[df['plot'].str.len() > 50]
 
 def kisa_plot(plot, max_len=350):
     return plot[:max_len] + "..." if len(plot) > max_len else plot
@@ -22,16 +17,11 @@ kriter = st.radio("Kriter seçin:", ["Tür", "Konu"])
 
 kullanici_girdisi = st.text_input("🎯 Türleri gir (virgülle ayır):", "") if kriter == "Tür" else st.text_area("🧠 Konu:", height=100)
 
-# Eğer tür seçildiyse, girilen tüm türleri içeren filmleri getir
-if kriter == "Tür" and kullanici_girdisi:
-    turler = [tur.strip().lower() for tur in kullanici_girdisi.split(",")]
-    df = df[df["category"].str.lower().apply(lambda x: all(tur in x for tur in turler))]
-
 if st.button("🎯 Önerileri Getir") and kullanici_girdisi:
     status_kutusu = st.empty()
     status_kutusu.info("Gemini ile puanlama yapılıyor, lütfen bekleyin...")
 
-    filmler = df.to_dict(orient="records")
+    filmler = en_iyi_filmleri_getir(kullanici_girdisi)
     grup_boyutu = 100
     start = time.time()
 
@@ -60,7 +50,7 @@ if st.button("🎯 Önerileri Getir") and kullanici_girdisi:
 
     puanli_filmler = list(zip(filmler, puanlar))
     sirali = sorted(puanli_filmler, key=lambda x: x[1], reverse=True)
-    sirali = [film for film in sirali if film[1] >= 5][:20]  # sadece en iyi 20 film, 5+ puanlı
+    sirali = [film for film in sirali if film[1] >= 5][:20]
 
     if sirali:
         st.success(f"🎉 {len(sirali)} film bulundu!")
